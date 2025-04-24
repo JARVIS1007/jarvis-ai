@@ -1,0 +1,75 @@
+📁 public/
+  └── index.html    ← frontend (antarmuka pengguna)
+
+📁 pages/
+  └── api/
+      └── chat.js   ← sudah kamu buat (API proxy ke OpenAI)
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>JARVIS AI</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    #chat { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; }
+    .bubble { margin: 5px 0; }
+    .user { color: blue; }
+    .ai { color: green; }
+  </style>
+</head>
+<body>
+  <h2>JARVIS AI</h2>
+  
+  <label for="character">Gaya Bicara:</label>
+  <select id="character">
+    <option value="default">Netral</option>
+    <option value="formal">Formal</option>
+    <option value="humor">Lucu</option>
+    <option value="gaul">Gaul</option>
+  </select>
+
+  <div id="chat"></div>
+
+  <input id="message" placeholder="Tulis pesan..." style="width: 70%;">
+  <button onclick="sendMessage()">Kirim</button>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const messageInput = document.getElementById('message');
+
+    let messages = [];
+
+    async function sendMessage() {
+      const text = messageInput.value;
+      const character = document.getElementById('character').value;
+
+      if (!text.trim()) return;
+
+      messages.push({ role: 'user', content: text });
+      addBubble('user', text);
+      messageInput.value = "";
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages, character })
+      });
+
+      const data = await response.json();
+      const reply = data.reply;
+
+      messages.push({ role: 'assistant', content: reply });
+      addBubble('ai', reply);
+    }
+
+    function addBubble(sender, text) {
+      const div = document.createElement('div');
+      div.className = `bubble ${sender}`;
+      div.innerText = sender === 'user' ? "Kamu: " + text : "JARVIS: " + text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>  
